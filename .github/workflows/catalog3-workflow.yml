@@ -93,6 +93,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "
             dockerfiles,
+            docker-compose.yml,
             docker-compose.prod.yml,
             docker-compose.common.yml,
             .env"
