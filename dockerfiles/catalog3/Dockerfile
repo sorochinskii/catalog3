@@ -9,4 +9,4 @@ ADD source source
 RUN ls -laht
 
 WORKDIR source
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8845"]
