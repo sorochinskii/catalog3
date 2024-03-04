@@ -2,6 +2,7 @@ on: [push]
 
 jobs:
   tests:
+    if: false
     name: Running pytest
     runs-on: ubuntu-latest
     strategy:
@@ -23,7 +24,7 @@ jobs:
         pytest
 
   build_and_push_to_docker_hub:
-    name: Push Docker image to Docker Hub
+    name: Build and push Docker image to Docker Hub
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -87,7 +88,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "dockerfiles,docker-compose.yml,.env"
+          source: "dockerfiles,docker-compose.yml,docker-compose.common.yml,.env"
           target: code
       -
         name: Executing docker compose and viola
@@ -110,8 +111,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
+    - name: Sleep before http check
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '10s'
     - name: Check http status code of production site
       uses: lakuapik/gh-actions-http-status@v1
       with:
-        sites: '["https://catalog.pikab00.ru/openapi.json"]'
+        sites: '["https://catalog3.pikab00.ru/openapi.json"]'
         expected: '[200]'

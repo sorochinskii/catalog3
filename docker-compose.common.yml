@@ -1,0 +1,22 @@
+services:
+
+  db:
+    image: postgres:15.6-alpine3.19
+    restart: always
+    container_name: catalog3-db
+    healthcheck:
+      test: "pg_isready -h db"
+      interval: 3s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5433:5432
+
+  web:
+    container_name: catalog3
+    restart: always
+    ports:
+      - 8845:8000
+    depends_on:
+      db:
+        condition: service_healthy

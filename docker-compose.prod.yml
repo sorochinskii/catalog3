@@ -1,0 +1,32 @@
+services:
+
+  db:
+    extends:
+      file: docker-compose.common.yml
+      service: db
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    env_file:
+        - ./.env
+    networks:
+    - network1
+
+  web:
+    extends:
+      file: docker-compose.common.yml
+      service: web
+    image: sorochinskii/${PROJECT_NAME}:latest
+    env_file:
+        - ./.env
+    volumes:
+      - .env:/code/.env
+    networks:
+    - network1
+
+
+networks:
+  network1:
+    name: servicesnetwork
+    external: true

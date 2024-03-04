@@ -5,8 +5,8 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-COPY source/ .
-
+ADD source source
 RUN ls -laht
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8845"]
+WORKDIR source
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]

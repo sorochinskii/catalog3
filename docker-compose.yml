@@ -1,33 +1,4 @@
-services:
-  db:
-    # build:
-    #   context: .
-    #   dockerfile: ./dockerfiles/postgres/Dockerfile
-    image: postgres:15.6-alpine3.19
-    restart: always
-    container_name: catalog3-db
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: ${DB_NAME}
-    env_file:
-        - ./.env
-  web:
-    image: sorochinskii/catalog3:latest
-    container_name: catalog3
-    restart: always
-    volumes:
-      - ./.env:/code/catalog3/.env
-    networks:
-      - network1
-    depends_on:
-      - db
-    env_file:
-      - ./.env
-    ports:
-      - 8846:8845
+version: '3.9'
 
-networks:
-  network1:
-    name: servicesnetwork
-    external: true
+include:
+  - docker-compose.${ENVIRONMENT}.yml
