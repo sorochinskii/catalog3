@@ -1,5 +1,8 @@
 on: [push]
 
+env:
+  ENVIRONMENT: prod
+
 jobs:
   tests:
     if: false
@@ -88,7 +91,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "dockerfiles,docker-compose.yml,docker-compose.common.yml,.env"
+          source: "
+            dockerfiles,
+            docker-compose.prod.yml,
+            docker-compose.common.yml,
+            .env"
           target: code
       -
         name: Executing docker compose and viola
@@ -100,6 +107,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
+            export ENVIRONMENT=${{ env.ENVIRONMENT }}
             cd ~/code
             ls -laht
             docker compose down
