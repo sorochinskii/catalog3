@@ -17,4 +17,4 @@ services:
     env_file:
       - ./.dev.env
     volumes:
-      - ./.dev.env:/code/catalog3/.dev.env
+      - ./.dev.env:/code/.dev.env

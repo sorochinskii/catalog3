@@ -142,3 +142,5 @@ db.json
 .private
 
 postgresdata
+
+./database/

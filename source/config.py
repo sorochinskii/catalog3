@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     SSH_PORT: str = Field(default="SSH_PORT")
     USER: str = Field(default="USER")
     PROJECT_NAME: str = Field(default="PROJECT_NAME")
+    ENVIRONMENT: str = Field(default="ENVIRONMENT")
 
     @model_validator(mode="before")
     def get_database_url(cls, v):
@@ -36,12 +37,18 @@ class Settings(BaseSettings):
         return v
 
 
-ENVIRONMENT: str | bool = getenv('ENVIRONMENT', 'prod')
+ENVIRONMENT: str | None = getenv('ENVIRONMENT')
+print("********************************", ENVIRONMENT)
+print("************************** main", getenv('config.py'))
 
 match ENVIRONMENT:
     case 'dev':
+        print("*****************inside dev=", find_dotenv('.dev.env'))
         env_file = find_dotenv('.dev.env', raise_error_if_not_found=True)
     case 'prod':
+        print("*****************inside prod", ENVIRONMENT)
         env_file = find_dotenv('.env', raise_error_if_not_found=True)
+    case None:
+        raise Exception(".env file not found")
 
 settings = Settings(env_file=env_file)
