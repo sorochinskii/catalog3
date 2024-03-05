@@ -143,4 +143,4 @@ db.json
 
 postgresdata
 
-./database/
+database/

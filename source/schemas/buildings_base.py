@@ -1,4 +1,4 @@
-from source.apps.schemas import BaseSchema
+from schemas.base import BaseSchema
 
 
 class BuildingBaseSchema(BaseSchema):

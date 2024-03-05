@@ -1,4 +1,4 @@
-from base import BaseSchema
+from schemas.base import BaseSchema
 
 
 class RoomBaseSchema(BaseSchema):
