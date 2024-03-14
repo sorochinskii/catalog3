@@ -1,6 +1,5 @@
+from db.models.base import BaseCommon
 from sqlalchemy.orm import Mapped, mapped_column
-
-from source.db.base import BaseCommon
 
 
 class Vendor(BaseCommon):

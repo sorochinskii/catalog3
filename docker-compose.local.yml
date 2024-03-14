@@ -1,0 +1,20 @@
+services:
+
+  db:
+    extends:
+      file: docker-compose.common.yml
+      service: db
+    env_file:
+        - ./.dev.local.env
+
+  web:
+    extends:
+      file: docker-compose.common.yml
+      service: web
+    build:
+      context: .
+      dockerfile: ./dockerfiles/catalog3/Dockerfile
+    env_file:
+      - ./.dev.local.env
+    volumes:
+      - ./.dev.local.env:/code/.dev.local.env

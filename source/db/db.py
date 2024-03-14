@@ -1,8 +1,7 @@
 from typing import AsyncGenerator
 
+from config import settings
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
-from source.config import settings
 
 engine = create_async_engine(settings.DB_URL, echo=True)
 
