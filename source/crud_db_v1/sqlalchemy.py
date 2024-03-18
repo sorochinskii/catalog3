@@ -1,21 +1,20 @@
 from dataclasses import dataclass
-from typing import Any, Callable, TypedDict
+from json import dumps, loads
+from typing import Any, Callable, Sequence, Type
 
-from crud.base import CRUD
-from sqlalchemy import Session, select
+from db.db import async_session_maker
+from db.models.base import BaseCommon
+from sqlalchemy import select
 from sqlalchemy.ext.declarative import DeclarativeMeta as Model
-from sqlalchemy.orm import MappedClassProtocol, load_only, raiseload
-
-from source.db.db import async_session_maker
-from source.db.models.base import Base
+from sqlalchemy.orm import MappedClassProtocol, Session, load_only, raiseload
 
 
-class CRUDSA(CRUD):
+class CRUDSA:
 
     def __init__(
             self,
-            model: Base,
-            session: Session,
+            model: Type[BaseCommon],
+            # session: Session,
             *args: Any,
             **kwargs: Any
     ):
@@ -24,14 +23,25 @@ class CRUDSA(CRUD):
 
     @dataclass
     class SelectOptions:
-        raiseload: list[Callable]
-        load_only: Callable
+        raiseload: list[Any]
+        load_only: Any
 
-    def get_select_options(self,
-                           include: list[Any] = [],
-                           exclude: list[Any] = [],
-                           raise_all_relations: bool = True
-                           ) -> SelectOptions:
+    async def get_all(self,
+                      include: list[Any] = [],
+                      exclude: list[Any] = []) -> Sequence[Any]:
+        options = self._get_select_options(include, exclude)
+        stmt = select(self.model).options(
+            *options.raiseload, options.load_only)
+        async with self.async_session_maker() as session:
+            raw = await session.scalars(stmt)
+        result = raw.all()
+        return result
+
+    def _get_select_options(self,
+                            include: list[Any] = [],
+                            exclude: list[Any] = [],
+                            raise_all_relations: bool = True
+                            ) -> SelectOptions:
         '''
             If field defined in both exclude and include lists, 
                 excluding priority

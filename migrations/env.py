@@ -8,18 +8,19 @@ sys.path.append(current_dir + "/source")  # noqa #isort:skip
 
 from alembic import context
 from db.models.base import BaseCommon
+from db.models.buildings import Building
+from db.models.persons import Person
+from db.models.rooms import Room
+from db.models.vendors import Vendor
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from source.config import settings
-from source.db.models.buildings import Building
-from source.db.models.persons import Person
-from source.db.models.rooms import Room
-from source.db.models.vendors import Vendor
 
 config = context.config
-config.set_main_option("sqlalchemy.url", f"{settings.DB_URL}?async_fallback=True")
+config.set_main_option(
+    "sqlalchemy.url", f"{settings.DB_URL}?async_fallback=True")
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

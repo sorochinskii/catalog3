@@ -3,7 +3,7 @@ repos:
   hooks:
     - id: generate-erd
       name: generate-erd
-      entry: python generate_erd.py
+      entry: python ./docs/generate_erd.py
       language: python
       types: [python]
       pass_filenames: false
