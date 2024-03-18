@@ -4,7 +4,6 @@ services:
     image: postgres:15.6-alpine3.19
     restart: always
     container_name: catalog3-db
-    user: 1000:1000
     healthcheck:
       test: "pg_isready -h db"
       interval: 3s
