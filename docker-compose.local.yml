@@ -4,6 +4,7 @@ services:
     extends:
       file: docker-compose.common.yml
       service: db
+    user: 1000:1000
     env_file:
         - ./.dev.local.env
 

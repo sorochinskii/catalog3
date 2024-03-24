@@ -144,3 +144,5 @@ db.json
 postgresdata
 
 database/
+
+logs/

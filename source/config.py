@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     USER: str = Field(default="USER")
     PROJECT_NAME: str = Field(default="PROJECT_NAME")
     ENVIRONMENT: str = Field(default="ENVIRONMENT")
+    LOG_DIR: str = Field(default="logs")
+    LOG_FILE_DEBUG: str = Field(default="debug.log")
+    LOG_FILE_INFO: str = Field(default="info.log")
+    LOG_FILE_ERROR: str = Field(default="error.log")
 
     @model_validator(mode="before")
     def get_database_url(cls, v):

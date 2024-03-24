@@ -4,7 +4,9 @@ from typing import Any, Callable, Sequence, Type
 
 from db.db import async_session_maker
 from db.models.base import BaseCommon
+from loguru import logger
 from sqlalchemy import select
+from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.ext.declarative import DeclarativeMeta as Model
 from sqlalchemy.orm import MappedClassProtocol, Session, load_only, raiseload
 
@@ -30,11 +32,27 @@ class CRUDSA:
                       include: list[Any] = [],
                       exclude: list[Any] = []) -> Sequence[Any]:
         options = self._get_select_options(include, exclude)
-        stmt = select(self.model).options(
-            *options.raiseload, options.load_only)
+        stmt = select(self.model
+                      ).options(*options.raiseload, options.load_only)
         async with self.async_session_maker() as session:
             raw = await session.scalars(stmt)
         result = raw.all()
+        return result
+
+    async def get_by_id(self,
+                        id: int,
+                        include: list[Any] = [],
+                        exclude: list[Any] = []) -> Any:
+        options = self._get_select_options(include, exclude)
+        stmt = select(self.model
+                      ).options(*options.raiseload, options.load_only
+                                ).filter_by(id=id)
+        async with self.async_session_maker() as session:
+            try:
+                raw = await session.scalars(stmt)
+                result = raw.one_or_none()
+            except MultipleResultsFound as e:
+                logger.debug('Multiple ids')
         return result
 
     def _get_select_options(self,
@@ -85,3 +103,6 @@ class CRUDSA:
         else:
             select_options.raiseload.append(raiseload('*'))
         return select_options
+
+    def get_model(self) -> Type[BaseCommon]:
+        return self.model
