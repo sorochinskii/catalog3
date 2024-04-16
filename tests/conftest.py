@@ -1,8 +1,9 @@
 from typing import Generator
 
 import pytest
-from source.main import app
 from starlette.testclient import TestClient
+
+from source.main import app
 
 
 @pytest.fixture

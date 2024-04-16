@@ -3,30 +3,44 @@ from enum import Enum
 from typing import Any, Callable, Type
 from xml.etree.ElementInclude import include
 
-from crud_db_v1.sqlalchemy import CRUDSA
+from crud_db_v1.sa_crud import CRUDSA
 from db.models.base import BaseCommon
-from fastapi import APIRouter, Depends, HTTPException
+from exceptions.http_exceptions import (
+    HttpExceptionsHandler,
+    HTTPObjectNotExist,
+    HTTPUniqueException,
+)
+from exceptions.sa_handler_manager import ItemNotFound, ItemNotUnique
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.params import Depends
+from fastapi.types import DecoratedCallable
 from schemas.base import BaseSchema
-from sqlalchemy import Sequence, inspect
+from sqlalchemy import Sequence, insert, inspect, update
 
 
 class RouterGenerator(APIRouter):
     def __init__(
         self,
         db_crud: CRUDSA,
-        # db_model: Type[BaseCommon] | None = None,
+        schema_basic_out: Type[BaseSchema],
         schema_basic_in: Type[BaseSchema] | None = None,
-        schema_basic_out: Type[BaseSchema] | None = None,
         schema_in: Type[BaseSchema] | None = None,
         schema_out: Type[BaseSchema] | None = None,
         schema_create: Type[BaseSchema] | None = None,
+        schema_update: Type[BaseSchema] | None = None,
         prefix: str = '',
         tags: list[str | Enum] = [''],
         route_get_all: bool = False,
         route_get_by_id: bool = False,
+        route_create: bool = False,
+        route_update: bool = False,
+        route_delete: bool = False,
         deps_route_get_all: list[Depends] = [],
         deps_route_get_by_id: list[Depends] = [],
+        deps_route_create: list[Depends] = [],
+        deps_route_update: list[Depends] = [],
+        deps_route_delete: list[Depends] = [],
         *args, **kwargs
     ) -> None:
         self.db_model = db_crud.get_model()
@@ -36,13 +50,10 @@ class RouterGenerator(APIRouter):
         self.schema_in = schema_in
         self.schema_out = schema_out
         self.schema_create = schema_create
-        self.deps_route_get_all = deps_route_get_all
-        self.deps_route_get_by_id = deps_route_get_by_id
-        self.route_get_all = route_get_all
-        self.route_get_by_id = route_get_by_id
+        self.schema_update = schema_update
 
         super().__init__(prefix=prefix, tags=tags, )
-        self._pk: int = inspect(self.db_model).mapper.primary_key
+        # self._pk = inspect(self.db_model).mapper.primary_key
         if route_get_all:
             self._add_api_route(
                 '',
@@ -50,26 +61,52 @@ class RouterGenerator(APIRouter):
                 methods=["GET"],
                 response_model=list[self.schema_basic_out] | None,
                 summary="Get all",
-                dependencies=self.deps_route_get_all)
+                dependencies=deps_route_get_all)
 
         if route_get_by_id:
             self._add_api_route(
-                '',
+                '/{item_id}/',
                 endpoint=self._get_by_id(),
                 methods=["GET"],
                 response_model=self.schema_basic_out,
                 summary="Get by id",
-                dependencies=self.deps_route_get_by_id)
+                dependencies=deps_route_get_by_id)
+
+        if route_create:
+            self._add_api_route(
+                '',
+                endpoint=self._create(),
+                methods=["POST"],
+                response_model=self.schema_create,
+                summary="Create",
+                dependencies=deps_route_create)
+
+        if route_update:
+            self._add_api_route(
+                '',
+                endpoint=self._update(),
+                methods=["PATCH"],
+                response_model=self.schema_in,
+                summary="Update",
+                dependencies=deps_route_update)
+
+        if route_delete:
+            self._add_api_route(
+                '/{item_id}/',
+                endpoint=self._delete(),
+                methods=["DELETE"],
+                response_model=self.schema_in,
+                summary="Delete item",
+                dependencies=deps_route_delete)
 
     def _add_api_route(
         self,
-        path: str,
+        path,
         endpoint: Callable[..., Any],
         dependencies: list[Depends] = [],
         error_responses: list[HTTPException] | None = None,
         **kwargs: Any,
     ) -> None:
-
         super().add_api_route(
             path, endpoint, dependencies=dependencies,
             ** kwargs
@@ -84,11 +121,41 @@ class RouterGenerator(APIRouter):
             return await self.db_crud.get_all(include=include_fields)
         return endpoint
 
-    def _get_by_id(self, *args: Any, **kwargs: Any) -> Callable:
-        async def endpoint(id: int):
-            if self.schema_basic_out:
-                include_fields = self.schema_basic_out.model_fields
-            else:
-                raise Exception('No response model.')
-            return await self.db_crud.get_by_id(id, include=include_fields)
+    def _get_by_id(self) -> Callable:
+        async def endpoint(item_id: int):
+            include_fields = self.schema_basic_out.model_fields
+            try:
+                result = await self.db_crud.get_by_id(item_id,
+                                                      include=include_fields)
+            except ItemNotFound:
+                raise HTTPObjectNotExist
+            return result
+        return endpoint
+
+    def _create(self) -> Callable:
+        async def endpoint(
+                data: self.schema_create = Body()
+        ) -> self.schema_basic_out:
+            try:
+                item_id: int = await self.db_crud.create(data=data.dict())
+                return item_id
+            except ItemNotUnique:
+                raise HTTPUniqueException
+        return endpoint
+
+    def _update(self) -> Callable:
+        async def endpoint(id: int, data: self.schema_update = Body()):
+            data = jsonable_encoder(data)
+            result = await self.db_crud.update(id, data)
+            if not result:
+                raise HTTPObjectNotExist
+            return result
+        return endpoint
+
+    def _delete(self) -> Callable:
+        async def endpoint(item_id: int) -> int:
+            with HttpExceptionsHandler():
+                result = await self.db_crud.delete(item_id)
+                pass
+            return result
         return endpoint

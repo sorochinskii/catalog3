@@ -1,4 +1,4 @@
-from crud_db_v1.sqlalchemy import CRUDSA
+from crud_db_v1.sa_crud import CRUDSA
 from db.models.vendors import Vendor
 from fastapi import APIRouter, Depends
 from schemas.buildings import BuildingSchemaOut

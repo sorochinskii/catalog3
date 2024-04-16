@@ -4,11 +4,12 @@ from typing import Any, Callable, Sequence, Type
 
 from db.db import async_session_maker
 from db.models.base import BaseCommon
+from exceptions.sa_handler_manager import ErrorHandler
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import delete, insert, select, text, update
 from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.ext.declarative import DeclarativeMeta as Model
-from sqlalchemy.orm import MappedClassProtocol, Session, load_only, raiseload
+from sqlalchemy.orm import load_only, raiseload
 
 
 class CRUDSA:
@@ -48,12 +49,51 @@ class CRUDSA:
                       ).options(*options.raiseload, options.load_only
                                 ).filter_by(id=id)
         async with self.async_session_maker() as session:
-            try:
-                raw = await session.scalars(stmt)
-                result = raw.one_or_none()
-            except MultipleResultsFound as e:
-                logger.debug('Multiple ids')
+            with ErrorHandler() as error_handler:
+                result = await session.execute(stmt)
+                item = result.one()[0]
+        return item
+
+    async def create(self,
+                     data: dict,
+                     include: list[Any] = [],
+                     exclude: list[Any] = []) -> Any:
+        stmt = insert(self.model).returning(self.model)
+        async with self.async_session_maker() as session:
+            with ErrorHandler():
+                result = await session.scalar(stmt, [data])
+                await session.commit()
         return result
+
+    async def update(self, id: int, data: dict,
+                     include: list[Any] = [],
+                     exclude: list[Any] = []) -> int | None:
+        stmt = update(self.model).\
+            where(self.model.id == id).\
+            values(data).\
+            returning(self.model.id)
+        async with self.async_session_maker() as session:
+            item_id = await session.scalar(stmt)
+            await session.commit()
+        return item_id
+
+    async def delete(self, item_id: int) -> int:
+        stmt = delete(self.model).\
+            where(self.model.id == item_id).\
+            returning(self.model.id)
+        with ErrorHandler():
+            await self.check_exist(item_id)
+        async with self.async_session_maker() as session:
+            result = await session.scalar(stmt)
+            await session.commit()
+        return result
+
+    async def check_exist(self, id):
+        query = text(
+            f'SELECT * FROM {self.model.__tablename__} WHERE id=:id')
+        async with async_session_maker() as session:
+            result = await session.execute(query, {'id': id})
+        return result.one()
 
     def _get_select_options(self,
                             include: list[Any] = [],
@@ -61,15 +101,15 @@ class CRUDSA:
                             raise_all_relations: bool = True
                             ) -> SelectOptions:
         '''
-            If field defined in both exclude and include lists, 
+            If field defined in both exclude and include lists,
                 excluding priority
             higher than including. (i.e. excluding more powerful.)
-            If any relation included to include list 
+            If any relation included to include list
                 and raise_all_relations == True, then all relations raised.
             If include list empty, its equal that all fields included to it.
-            If at least one field/relation defined in include list, 
+            If at least one field/relation defined in include list,
                 other fields/relations excluded.
-            If at least one field/relation defined in exclude list, 
+            If at least one field/relation defined in exclude list,
                 other fields/relations included.
         '''
         all_fields = self.model.as_list()

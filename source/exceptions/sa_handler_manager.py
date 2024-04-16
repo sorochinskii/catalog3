@@ -1,0 +1,32 @@
+from psycopg2 import errorcodes
+from psycopg2.errorcodes import FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION, lookup
+from sqlalchemy.exc import NoResultFound, SQLAlchemyError
+
+
+class ItemNotFound(SQLAlchemyError):
+    ...
+
+
+class ItemNotUnique(SQLAlchemyError):
+    ...
+
+
+class ErrorHandler:
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, ex_type, ex_instance, traceback):
+        if hasattr(ex_instance, 'orig'):
+            match ex_instance.orig.pgcode:
+                case errorcodes.UNIQUE_VIOLATION:
+                    raise ItemNotUnique("Not unique")
+                case errorcodes.FOREIGN_KEY_VIOLATION:
+                    raise SQLAlchemyError("Foreign key not present")
+                # case errorcodes.DATA_EXCEPTION:
+                case _:
+                    raise ex_instance
+        elif type(ex_instance) == NoResultFound:
+            raise ItemNotFound
+        else:
+            pass
