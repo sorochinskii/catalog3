@@ -21,6 +21,21 @@ class EnvironmentVars:
     testing: str = 'testing'
 
 
+match ENVIRONMENT:
+    case EnvironmentVars.dev:
+        env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.prod:
+        env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.local:
+        env_file = find_dotenv(LOCAL_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.local:
+        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
+    case None:
+        raise Exception('dot env file not found')
+
+print(ENVIRONMENT)
+
+
 class Settings(BaseSettings):
     def __init__(self, env_file):
         super().__init__(_env_file=env_file, _case_sensitive=True)
@@ -65,17 +80,5 @@ class Settings(BaseSettings):
     class Config:
         validate_assignment = True
 
-
-match ENVIRONMENT:
-    case EnvironmentVars.dev:
-        env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.prod:
-        env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.local:
-        env_file = find_dotenv(LOCAL_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.local:
-        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
-    case None:
-        raise Exception('dot env file not found')
 
 settings = Settings(env_file=env_file)
