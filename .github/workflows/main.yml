@@ -90,7 +90,7 @@ jobs:
       - 
         name: Set ENVIRONMENT to testing env
         run: |
-          echo "ENVIRONMENT=testing" >> $GITHUB_ENV
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
       -
         name: Install dump-env and create .env
         env:

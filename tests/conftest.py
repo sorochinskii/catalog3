@@ -9,7 +9,7 @@ from httpx import AsyncClient
 from starlette.testclient import TestClient
 from testcontainers.postgres import PostgresContainer
 
-from source.config import ENVIRONMENT, settings
+from source.config import settings
 from source.main import app
 
 postgres = PostgresContainer('postgres:15.6-alpine3.19',

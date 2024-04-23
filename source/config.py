@@ -21,6 +21,8 @@ class EnvironmentVars:
     testing: str = 'testing'
 
 
+print('environment', ENVIRONMENT)
+
 match ENVIRONMENT:
     case EnvironmentVars.dev:
         env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
@@ -32,8 +34,6 @@ match ENVIRONMENT:
         env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
     case None:
         raise Exception('dot env file not found')
-
-print(ENVIRONMENT)
 
 
 class Settings(BaseSettings):
