@@ -30,7 +30,7 @@ match ENVIRONMENT:
         env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.local:
         env_file = find_dotenv(LOCAL_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.local:
+    case EnvironmentVars.testing:
         env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
     case None:
         raise Exception('dot env file not found')
