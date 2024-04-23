@@ -9,9 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 DEV_ENV_FILE: str = '.dev.env'
 PROD_ENV_FILE: str = '.env'
 LOCAL_ENV_FILE: str = '.dev.local.env'
-# TESTING_ENV_FILE: str = '.dev.testing.env'
+TEST_ENV_FILE: str = '.testing.env'
 ENVIRONMENT: str | None = getenv('ENVIRONMENT')
-TESTING: str | None = getenv('TESTING')
 
 
 @dataclass
@@ -19,6 +18,7 @@ class EnvironmentVars:
     dev: str = 'dev'
     prod: str = 'prod'
     local: str = 'local'
+    testing: str = 'testing'
 
 
 class Settings(BaseSettings):
@@ -45,20 +45,14 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default='ENVIRONMENT')
     LOG_DIR: str = Field(default='logs')
     HTTP_PORT: int = Field(default=8445)
-    TESTING: str | None = Field(default=None)
     V1: str = Field(default='v1')
 
     @model_validator(mode='before')
     def get_database_url(cls, values):
-        if values['TESTING'] == 'TESTING':
-            values['DB_URL'] = (
-                f'postgresql+asyncpg://test:test@localhost:47000/test'
-            )
-        else:
-            values['DB_URL'] = (
-                f"postgresql+asyncpg://{values['DB_USER']}:{values['DB_PASS']}"
-                + f"@{values['DB_HOST']}:{values['DB_PORT']}/{values['DB_NAME']}"
-            )
+        values['DB_URL'] = (
+            f"postgresql+asyncpg://{values['DB_USER']}:{values['DB_PASS']}"
+            + f"@{values['DB_HOST']}:{values['DB_PORT']}/{values['DB_NAME']}"
+        )
         return values
 
     @model_validator(mode='after')
@@ -79,6 +73,8 @@ match ENVIRONMENT:
         env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.local:
         env_file = find_dotenv(LOCAL_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.local:
+        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
     case None:
         raise Exception('dot env file not found')
 
