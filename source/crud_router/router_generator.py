@@ -15,6 +15,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.params import Depends
 from fastapi.types import DecoratedCallable
+from loguru import logger
 from schemas.base import BaseSchema
 from sqlalchemy import Sequence, insert, inspect, update
 
@@ -77,7 +78,7 @@ class RouterGenerator(APIRouter):
                 '',
                 endpoint=self._create(),
                 methods=["POST"],
-                response_model=self.schema_create,
+                response_model=self.schema_basic_out,
                 summary="Create",
                 dependencies=deps_route_create)
 
@@ -137,8 +138,8 @@ class RouterGenerator(APIRouter):
                 data: self.schema_create = Body()
         ) -> self.schema_basic_out:
             try:
-                item_id: int = await self.db_crud.create(data=data.dict())
-                return item_id
+                response: int = await self.db_crud.create(data=data.dict())
+                return response
             except ItemNotUnique:
                 raise HTTPUniqueException
         return endpoint
@@ -156,6 +157,5 @@ class RouterGenerator(APIRouter):
         async def endpoint(item_id: int) -> int:
             with HttpExceptionsHandler():
                 result = await self.db_crud.delete(item_id)
-                pass
             return result
         return endpoint

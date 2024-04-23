@@ -1,8 +1,9 @@
+import contextvars
 import time
 import uuid
 
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from loguru import logger
 from starlette.routing import Match
 
@@ -21,7 +22,7 @@ async def x_process_time_header(request: Request, call_next):
             status_code=response.status_code,
             elapsed=process_time,
         ).debug(
-            "incoming {method} request {url} response status {status_code}",
+            f"incoming {request.method} request {request.url} response status {response.status_code}",
         )
         response.headers["X-Process-Time"] = str(process_time)
         return response

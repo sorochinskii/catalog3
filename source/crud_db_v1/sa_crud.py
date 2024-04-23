@@ -63,6 +63,7 @@ class CRUDSA:
             with ErrorHandler():
                 result = await session.scalar(stmt, [data])
                 await session.commit()
+        logger.debug(f"SA crud create statement: {stmt}, data: {data}")
         return result
 
     async def update(self, id: int, data: dict,

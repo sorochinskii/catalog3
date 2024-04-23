@@ -1,3 +1,4 @@
+from loguru import logger
 from psycopg2 import errorcodes
 from psycopg2.errorcodes import FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION, lookup
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
@@ -17,6 +18,8 @@ class ErrorHandler:
         return self
 
     def __exit__(self, ex_type, ex_instance, traceback):
+        if ex_instance:
+            logger.error(f'Inside sa error handler {ex_instance}')
         if hasattr(ex_instance, 'orig'):
             match ex_instance.orig.pgcode:
                 case errorcodes.UNIQUE_VIOLATION:
@@ -28,5 +31,7 @@ class ErrorHandler:
                     raise ex_instance
         elif type(ex_instance) == NoResultFound:
             raise ItemNotFound
+        elif ex_instance:
+            raise ex_instance
         else:
             pass
