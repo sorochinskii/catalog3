@@ -23,7 +23,7 @@ def run_migrations(dsn: str) -> None:
     command.upgrade(alembic_cfg, 'head')
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 def event_loop(request):
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
