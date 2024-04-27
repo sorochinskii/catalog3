@@ -1,7 +1,8 @@
-from typing import Any
+from datetime import datetime
+from typing import Annotated, Any
 
 from db.models.utils import split_and_concatenate
-from sqlalchemy import inspect
+from sqlalchemy import func, inspect
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 
@@ -12,8 +13,8 @@ class Base(DeclarativeBase):
 class TableNameMixin:
     @declared_attr.directive
     def __tablename__(cls) -> str:
-        result = split_and_concatenate(cls.__name__)
-        return result
+        table_name = split_and_concatenate(cls.__name__)
+        return table_name
 
 
 class BaseCommon(Base, TableNameMixin):
@@ -72,3 +73,16 @@ class BaseCommon(Base, TableNameMixin):
 
 class BaseCommonWithoutID(Base, TableNameMixin):
     __abstract__ = True
+
+
+created_at = Annotated[
+    datetime,
+    mapped_column(nullable=False, server_default=func.now())
+]
+
+
+updated_at = Annotated[
+    datetime,
+    mapped_column(nullable=False, server_default=func.now(),
+                  onupdate=func.now())
+]

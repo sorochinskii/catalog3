@@ -24,5 +24,5 @@ class Room(BaseCommon):
     building_id = mapped_column(ForeignKey('building.id'))
     building: Mapped['Building'] = relationship(
         back_populates='rooms', lazy='joined')
-    persons = relationship('Room',
-                           secondary=RoomsPersons.__tablename__, lazy='joined')
+    persons: Mapped['Room'] = relationship(
+        secondary=RoomsPersons.__tablename__, lazy='joined')

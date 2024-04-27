@@ -138,6 +138,7 @@ class RouterGenerator(APIRouter):
                 data: self.schema_create = Body()
         ) -> self.schema_basic_out:
             try:
+                logger.debug('Create endpoint. Data', data.dict())
                 response: int = await self.db_crud.create(data=data.dict())
                 return response
             except ItemNotUnique:

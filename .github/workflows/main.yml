@@ -45,7 +45,7 @@ jobs:
     - 
       name: Tests with pytest
       run: |
-        pytest
+        pytest --test-alembic
 
   build_and_push_to_docker_hub:
     name: Build and push Docker image to Docker Hub

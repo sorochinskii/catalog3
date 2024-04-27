@@ -21,6 +21,8 @@ if __name__ == '__main__':
     from db.models.buildings import Building
     from db.models.persons import Person
     from db.models.rooms import Room
+    from db.models.tokens import Token
+    from db.models.users import User
     from db.models.vendors import Vendor
     from eralchemy2 import render_er
     render_er(BaseCommon, './docs/erd.png')

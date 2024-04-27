@@ -17,7 +17,7 @@ async def test_delete_vendor(test_client: AsyncClient):
     vendor_create = VendorCreateFactory.build()
     data = vendor_create.model_dump()
     vendor = await test_client.post(
-        '/v1/vendors', json={'name': 'string2'})
+        '/v1/vendors', json=data)
     item_id = vendor.json().get('id')
     response = await test_client.delete(f'/v1/vendors/{item_id}/')
     response_id = response.json()
@@ -25,5 +25,7 @@ async def test_delete_vendor(test_client: AsyncClient):
 
 
 async def test_create_vendor(test_client: AsyncClient):
-    response = await test_client.post('/v1/vendors', json={'name': 'string'})
-    assert response.json().get('name') == 'string'
+    vendor_create = VendorCreateFactory.build()
+    data = vendor_create.model_dump()
+    response = await test_client.post('/v1/vendors', json=data)
+    assert response.json().get('name') == data.get('name')
