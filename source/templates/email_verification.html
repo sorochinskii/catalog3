@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Email verification</h1>
+    <p>
+        Click link for verification
+        http://localhost:8245/v1/users/verify/{{ token }}
+    </p>
+{% endblock content %}

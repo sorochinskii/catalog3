@@ -1,23 +1,18 @@
-from collections.abc import Coroutine
 from enum import Enum
 from typing import Any, Callable, Type
-from xml.etree.ElementInclude import include
 
 from crud_db_v1.sa_crud import CRUDSA
-from db.models.base import BaseCommon
 from exceptions.http_exceptions import (
     HttpExceptionsHandler,
     HTTPObjectNotExist,
     HTTPUniqueException,
 )
-from exceptions.sa_handler_manager import ItemNotFound, ItemNotUnique
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from exceptions.sa_handler_manager import ItemNotUnique
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.params import Depends
-from fastapi.types import DecoratedCallable
 from loguru import logger
 from schemas.base import BaseSchema
-from sqlalchemy import Sequence, insert, inspect, update
 
 
 class RouterGenerator(APIRouter):
@@ -125,11 +120,9 @@ class RouterGenerator(APIRouter):
     def _get_by_id(self) -> Callable:
         async def endpoint(item_id: int):
             include_fields = self.schema_basic_out.model_fields
-            try:
+            with HttpExceptionsHandler():
                 result = await self.db_crud.get_by_id(item_id,
                                                       include=include_fields)
-            except ItemNotFound:
-                raise HTTPObjectNotExist
             return result
         return endpoint
 
@@ -155,7 +148,7 @@ class RouterGenerator(APIRouter):
         return endpoint
 
     def _delete(self) -> Callable:
-        async def endpoint(item_id: int) -> int:
+        async def endpoint(item_id: int) -> int | None:
             with HttpExceptionsHandler():
                 result = await self.db_crud.delete(item_id)
             return result

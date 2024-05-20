@@ -18,15 +18,12 @@ class ErrorHandler:
         return self
 
     def __exit__(self, ex_type, ex_instance, traceback):
-        if ex_instance:
-            logger.error(f'Inside sa error handler {ex_instance}')
         if hasattr(ex_instance, 'orig'):
             match ex_instance.orig.pgcode:
                 case errorcodes.UNIQUE_VIOLATION:
                     raise ItemNotUnique("Not unique")
                 case errorcodes.FOREIGN_KEY_VIOLATION:
                     raise SQLAlchemyError("Foreign key not present")
-                # case errorcodes.DATA_EXCEPTION:
                 case _:
                     raise ex_instance
         elif type(ex_instance) == NoResultFound:

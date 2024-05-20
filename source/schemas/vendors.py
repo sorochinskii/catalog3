@@ -1,4 +1,3 @@
-from schemas.base import BaseSchema
 from schemas.vendors_base import VendorBaseSchema
 
 

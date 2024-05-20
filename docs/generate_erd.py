@@ -17,11 +17,11 @@ def install(package):
 if __name__ == '__main__':
     install('eralchemy2')
     install('sqlalchemy')
+    install('fastapi_users_db_sqlalchemy')
     from db.models.base import BaseCommon
     from db.models.buildings import Building
     from db.models.persons import Person
     from db.models.rooms import Room
-    from db.models.tokens import Token
     from db.models.users import User
     from db.models.vendors import Vendor
     from eralchemy2 import render_er

@@ -1,7 +1,6 @@
 from crud_db_v1.sa_crud import CRUDSA
 from crud_router.router_generator import RouterGenerator
 from db.models.vendors import Vendor
-from fastapi import APIRouter, Depends
 from schemas.vendors import VendorSchema
 from schemas.vendors_base import VendorBaseSchema, VendorBaseSchemaOut
 

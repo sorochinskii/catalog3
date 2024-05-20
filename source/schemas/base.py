@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, create_model
 
 
-class BaseSchema(BaseModel):
+class OptionalFieldsMixin:
     @classmethod
     def optional_fields(cls) -> type[BaseModel]:
         fields = {
@@ -11,6 +11,9 @@ class BaseSchema(BaseModel):
         name = f"Optional{cls.__name__}"
         model = create_model(name, __base__=cls, **fields)
         return model
+
+
+class BaseSchema(BaseModel, OptionalFieldsMixin):
 
     class Config:
         from_attributes = True

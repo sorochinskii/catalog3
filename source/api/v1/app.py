@@ -1,3 +1,5 @@
+from api.v1.endpoints.users import router_users
+from api.v1.endpoints.users_verify import router_verify
 from api.v1.endpoints.vendors import router_vendors
 from config import ENVIRONMENT, settings
 from fastapi import FastAPI
@@ -19,3 +21,5 @@ app = FastAPI(openapi_tags=tags_metadata)
 
 app.include_router(router_buildings)
 app.include_router(router_vendors)
+app.include_router(router_users)
+app.include_router(router_verify)

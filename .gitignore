@@ -137,12 +137,13 @@ __pycache__/
 
 db.json
 
+*.env
+.dev.local.env
 *.dev.env
 *.prod.env
 .private
 
 postgresdata
-
 database/
 
 logs/

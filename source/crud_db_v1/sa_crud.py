@@ -54,6 +54,21 @@ class CRUDSA:
                 item = result.one()[0]
         return item
 
+    async def get_with_filters(self,
+                               include: list[Any] = [],
+                               exclude: list[Any] = [],
+                               **filters) -> Any:
+        # filters = kwargs.get('filters')
+        options = self._get_select_options(include, exclude)
+        stmt = select(self.model
+                      ).options(*options.raiseload, options.load_only
+                                ).filter_by(**filters)
+        async with self.async_session_maker() as session:
+            with ErrorHandler() as error_handler:
+                result = await session.execute(stmt)
+                item = result.one()[0]
+        return item
+
     async def create(self,
                      data: dict,
                      include: list[Any] = [],
@@ -78,18 +93,18 @@ class CRUDSA:
             await session.commit()
         return item_id
 
-    async def delete(self, item_id: int) -> int:
+    async def delete(self, item_id: int) -> int | None:
         stmt = delete(self.model).\
             where(self.model.id == item_id).\
             returning(self.model.id)
         with ErrorHandler():
-            await self.check_exist(item_id)
+            await self.check_exist_by_id(item_id)
         async with self.async_session_maker() as session:
             result = await session.scalar(stmt)
             await session.commit()
         return result
 
-    async def check_exist(self, id):
+    async def check_exist_by_id(self, id):
         query = text(
             f'SELECT * FROM {self.model.__tablename__} WHERE id=:id')
         async with async_session_maker() as session:
