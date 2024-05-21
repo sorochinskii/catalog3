@@ -114,6 +114,7 @@ jobs:
           SECRET_TOKEN_LIFETIME: ${{ secrets.TOKEN_LIFETIME}}
           SECRET_TEMPLATES_DIR: ${{ secrets.TEMPLATES_DIR}}
           SECRET_TEMPLATE_VERIFICATION: ${{ secrets.TEMPLATE_VERIFICATION}}
+          SECRET_HTTP_PORT: ${{ secrets.HTTP_PORT }}
           SECRET_V1: ${{ secrets.V1 }}
         run: |
           python -m pip install --upgrade pip
