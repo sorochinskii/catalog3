@@ -32,7 +32,8 @@ jobs:
         SECRET_DB_USER: ${{ secrets.TESTING_DB_USER }}
         SECRET_PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         SECRET_ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
-        SECRET_SECRET: ${{ secrets.TOKEN_LIFETIME}}
+        SECRET_SECRET: ${{ secrets.TESTING_SECRET}}
+        SECRET_TOKEN_LIFETIME: ${{ secrets.TOKEN_LIFETIME}}
         SECRET_TEMPLATES_DIR: ${{ secrets.TEMPLATES_DIR}}
         SECRET_TEMPLATE_VERIFICATION: ${{ secrets.TEMPLATE_VERIFICATION}}
         SECRET_HTTP_PROTOCOL: ${{ secrets.TESTING_HTTP_PROTOCOL}}
@@ -109,10 +110,10 @@ jobs:
           SECRET_DB_USER: ${{ secrets.DB_USER }}
           SECRET_PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
           SECRET_ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
-          SECRET_SECRET: ${{ secrets.TOKEN_LIFETIME}}
+          SECRET_SECRET: ${{ secrets.SECRET}}
+          SECRET_TOKEN_LIFETIME: ${{ secrets.TOKEN_LIFETIME}}
           SECRET_TEMPLATES_DIR: ${{ secrets.TEMPLATES_DIR}}
           SECRET_TEMPLATE_VERIFICATION: ${{ secrets.TEMPLATE_VERIFICATION}}
-          SECRET_HTTP_PROTOCOL: ${{ secrets.HTTP_PROTOCOL}}
           SECRET_V1: ${{ secrets.V1 }}
         run: |
           python -m pip install --upgrade pip
