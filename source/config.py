@@ -12,7 +12,9 @@ TEMPLATE_ENV_FILE: str = '.env.template'
 DEV_ENV_FILE: str = '.dev.env'
 PROD_ENV_FILE: str = '.env'
 LOCAL_ENV_FILE: str = '.dev.local.env'
+LOCAL_TEST_ENV_FILE: str = '.local.testing.env'
 TEST_ENV_FILE: str = '.testing.env'
+
 ENVIRONMENT: str | None = getenv('ENVIRONMENT')
 
 
@@ -21,6 +23,7 @@ class EnvironmentVars:
     dev: str = 'dev'
     prod: str = 'prod'
     local: str = 'local'
+    local_testing: str = 'local_testing'
     testing: str = 'testing'
 
 
@@ -30,6 +33,8 @@ match ENVIRONMENT:
     case EnvironmentVars.dev:
         env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.prod:
+        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.testing:
         env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.local:
         variables = dump(template=TEMPLATE_ENV_FILE,
@@ -38,13 +43,14 @@ match ENVIRONMENT:
             for key, value in variables.items():
                 file.write(f'{key}={value}\n')
         env_file = find_dotenv(LOCAL_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.testing:
+    case EnvironmentVars.local_testing:
         variables = dump(template=TEMPLATE_ENV_FILE,
                          prefixes=['TESTING_CATALOG3_'])
         with open(TEST_ENV_FILE, 'w') as file:
             for key, value in variables.items():
                 file.write(f'{key}={value}\n')
-        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
+        env_file = find_dotenv(LOCAL_TEST_ENV_FILE,
+                               raise_error_if_not_found=True)
     case _:
         raise Exception('Dot env file not found')
 
