@@ -1,16 +1,10 @@
-from apps.users import (
-    auth_backend,
-    current_active_user,
-    fastapi_users,
-    get_user_manager,
-)
-from db.models.users import User
+from apps.users_dependencies import get_user_manager
 from exceptions.http_exceptions import HttpExceptionsHandler
 from fastapi import APIRouter, Body, Depends, Request, exceptions, status
 from fastapi_users import BaseUserManager, models, schemas
 from fastapi_users.router.common import ErrorCode, ErrorModel
 from pydantic import EmailStr
-from schemas.users_base import UserBaseSchemaIn, UserBaseSchemaOut, UserBaseSchemaUpdate
+from schemas.users_base import UserBaseSchemaOut
 
 router_verify = APIRouter(prefix='/users')
 

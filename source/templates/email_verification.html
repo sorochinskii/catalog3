@@ -2,7 +2,13 @@
 {% block content %}
     <h1>Email verification</h1>
     <p>
-        Click link for verification
-        http://localhost:8245/v1/users/verify/{{ token }}
+        Your token {{ token }}
+        <p>
+        or
+        </p>
+        <p>Click link for verification </p>
+    </p>
+    <p>
+    <a href="{{ protocol }}://{{ host }}{% if port|int != 0 %}:{{ port }}{% endif %}/{{ api_v }}/users/verify/{{ token }}">link</a>
     </p>
 {% endblock content %}

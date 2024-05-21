@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 from fastapi import status
 from httpx import AsyncClient
 
@@ -15,7 +13,7 @@ async def test_user_create(test_client: AsyncClient,
     user_info.update(user_create.json())
 
 
-async def test_verify_user(mocker: Mock,
+async def test_verify_user(mocker,
                            test_client: AsyncClient,
                            user_info: OptionalBaseUser):
     smtp_module = "source.apps.utils.smtplib.SMTP_SSL"

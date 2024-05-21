@@ -41,7 +41,10 @@ def run_migrations(dsn: str) -> None:
 
 @pytest.fixture(scope='session')
 def event_loop(request):
-    """Create an instance of the default event loop for each test case."""
+    '''Для решения проблемы ScopeMismatch: "You tried to access 
+    the 'function' scoped fixture 'event_loop' with a 'module' 
+    scoped request object, involved factories."
+    Create an instance of the default event loop for each test case.'''
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -79,7 +82,6 @@ def test_client_() -> Generator[TestClient, None, None]:
 async def test_client() -> AsyncIterator[AsyncClient]:
     async with AsyncClient(app=app, base_url='http://testserver') as client:
         yield client
-# def pytest_sessionstart(session):
 
 
 @pytest.fixture(scope='session', autouse=True)

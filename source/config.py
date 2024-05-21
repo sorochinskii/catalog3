@@ -72,10 +72,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = Field(default='PROJECT_NAME')
     ENVIRONMENT: str = Field(default='ENVIRONMENT')
     LOG_DIR: str = Field(default='logs')
-    HTTP_PORT: int = Field(default=8445)
     V1: str = Field(default='v1')
     SECRET: str = Field(default='SECRET')
-    TOKEN_LIFETIME: int = Field(default=3600)
+    TOKEN_LIFETIME: int | None = Field(default=None)
     TELEGRAM_TOKEN: str = Field(default='TELEGRAM_TOKEN')
     TELEGRAM_LOGIN: str = Field(default='TELEGRAM_LOGIN')
     SMTP_SERVER: str = Field(default='SMTP_SERVER')
@@ -84,6 +83,8 @@ class Settings(BaseSettings):
     SMTP_PORT: int = Field(default='123')
     TEMPLATES_DIR: str = Field(default='source/templates')
     TEMPLATE_VERIFICATION: str = Field(default='email_verification.html')
+    HTTP_PROTOCOL: str = Field(default='https')
+    HTTP_PORT: int | None = Field(default=None)
 
     @model_validator(mode='before')
     def get_database_url(cls, values):
