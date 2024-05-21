@@ -33,9 +33,9 @@ match ENVIRONMENT:
     case EnvironmentVars.dev:
         env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.prod:
-        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
-    case EnvironmentVars.testing:
         env_file = find_dotenv(PROD_ENV_FILE, raise_error_if_not_found=True)
+    case EnvironmentVars.testing:
+        env_file = find_dotenv(TEST_ENV_FILE, raise_error_if_not_found=True)
     case EnvironmentVars.local:
         variables = dump(template=TEMPLATE_ENV_FILE,
                          prefixes=['CATALOG3_'])
@@ -46,7 +46,7 @@ match ENVIRONMENT:
     case EnvironmentVars.local_testing:
         variables = dump(template=TEMPLATE_ENV_FILE,
                          prefixes=['TESTING_CATALOG3_'])
-        with open(TEST_ENV_FILE, 'w') as file:
+        with open(LOCAL_TEST_ENV_FILE, 'w') as file:
             for key, value in variables.items():
                 file.write(f'{key}={value}\n')
         env_file = find_dotenv(LOCAL_TEST_ENV_FILE,
