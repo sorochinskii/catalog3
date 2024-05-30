@@ -1,5 +1,5 @@
 
-from apps.users_dependencies import auth_backend, current_active_user, fastapi_users
+from apps.users import auth_backend, current_active_user, fastapi_users
 from db.models.users import User
 from fastapi import APIRouter, Depends
 from schemas.users_base import UserBaseSchemaIn, UserBaseSchemaOut, UserBaseSchemaUpdate

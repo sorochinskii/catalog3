@@ -21,7 +21,7 @@ from source.schemas.users_base import (
 )
 
 postgres = PostgresContainer('postgres:15.6-alpine3.19',
-                             driver='asyncpg').with_bind_ports(5432, 47000)
+                             driver='asyncpg').with_bind_ports(container=settings.DB_PORT_CONTAINER, host=settings.DB_PORT)
 
 
 class UserCreateFactory(ModelFactory[BaseUserCreate]):

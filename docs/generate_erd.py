@@ -20,6 +20,8 @@ if __name__ == '__main__':
     install('fastapi_users_db_sqlalchemy')
     from db.models.base import BaseCommon
     from db.models.buildings import Building
+    from db.models.devices import Device
+    from db.models.mfp import MFPNetwork
     from db.models.persons import Person
     from db.models.rooms import Room
     from db.models.users import User

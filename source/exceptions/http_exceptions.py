@@ -1,4 +1,4 @@
-from exceptions.sa_handler_manager import ItemNotFound, NoResultFound
+from exceptions.sa_handler_manager import ItemNotFound, ItemNotUnique
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from fastapi_users import exceptions as fast_users_exceptions
@@ -11,14 +11,30 @@ HTTPObjectNotExist = HTTPException(
     detail="Item not found."
 )
 
-HTTPUniqueException = HTTPException(
+HTTPUniqueAttrException = HTTPException(
     status_code=status.HTTP_409_CONFLICT,
     detail="Unique attribute exists."
+)
+
+HTTPUniqueException = HTTPException(
+    status_code=status.HTTP_409_CONFLICT,
+    detail="Unique item exists."
 )
 
 HTTPUserNotExists = HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="User not exists."
+)
+
+
+HTTPVerifyBadToken = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail=FastUsersErrorCode.VERIFY_USER_BAD_TOKEN,
+)
+
+HTTPUserAlreadyVerified = HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail=FastUsersErrorCode.VERIFY_USER_ALREADY_VERIFIED,
 )
 
 
@@ -28,20 +44,16 @@ class HttpExceptionsHandler:
 
     def __exit__(self, ex_type, ex_instance, traceback):
         match ex_instance:
+            case ItemNotUnique():
+                raise HTTPUniqueException
             case ItemNotFound():
                 raise HTTPObjectNotExist
             case UserNotExists():
                 raise HTTPUserNotExists
             case fast_users_exceptions.InvalidVerifyToken():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=FastUsersErrorCode.VERIFY_USER_BAD_TOKEN,
-                )
+                raise HTTPVerifyBadToken
             case fast_users_exceptions.UserAlreadyVerified():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=FastUsersErrorCode.VERIFY_USER_ALREADY_VERIFIED,
-                )
+                raise HTTPUserAlreadyVerified
         if ex_instance:
             logger.error(f"Inside HttpExceptionsHandler {ex_instance}")
             raise ex_instance

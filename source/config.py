@@ -27,8 +27,6 @@ class EnvironmentVars:
     testing: str = 'testing'
 
 
-print('environment', ENVIRONMENT)
-
 match ENVIRONMENT:
     case EnvironmentVars.dev:
         env_file = find_dotenv(DEV_ENV_FILE, raise_error_if_not_found=True)
@@ -62,6 +60,7 @@ class Settings(BaseSettings):
     DB_HOST: str = Field(default='DB_HOST')
     DB_PASS: str = Field(default='DB_PASS')
     DB_PORT: str = Field(default='DB_PORT')
+    DB_PORT_CONTAINER: str = Field(default='DB_PORT_CONTAINER')
     DB_USER: str = Field(default='DB_USER')
     DB_NAME: str = Field(default='DB_NAME')
     DB_URL: str = Field(default='DB_URL')

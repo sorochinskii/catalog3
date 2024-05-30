@@ -1,4 +1,4 @@
-from apps.users_dependencies import get_user_manager
+from apps.users import get_user_manager
 from exceptions.http_exceptions import HttpExceptionsHandler
 from fastapi import APIRouter, Body, Depends, Request, exceptions, status
 from fastapi_users import BaseUserManager, models, schemas

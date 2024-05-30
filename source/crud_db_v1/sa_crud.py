@@ -17,7 +17,6 @@ class CRUDSA:
     def __init__(
             self,
             model: Type[BaseCommon],
-            # session: Session,
             *args: Any,
             **kwargs: Any
     ):

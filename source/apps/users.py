@@ -2,12 +2,25 @@ from typing import Optional
 
 from apps.utils import EmailSender, RenderMessage
 from config import settings
+from db.db import get_async_session
 from db.models.users import User
 from exceptions.http_exceptions import HTTPObjectNotExist
 from exceptions.smtp_exception_handler import SmtpErrorHandler
-from fastapi import Request
-from fastapi_users import BaseUserManager, IntegerIDMixin, InvalidPasswordException
+from fastapi import Depends, Request
+from fastapi_users import (
+    BaseUserManager,
+    FastAPIUsers,
+    IntegerIDMixin,
+    InvalidPasswordException,
+)
+from fastapi_users.authentication import (
+    AuthenticationBackend,
+    BearerTransport,
+    JWTStrategy,
+)
+from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from schemas.users_base import UserBaseSchemaIn
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
@@ -34,10 +47,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         subject = 'Verification message'
         message = verification_message.message(
             subject=subject,
-            protocol=settings.HTTP_PROTOCOL,
-            port=settings.HTTP_PORT,
-            host=settings.HOST,
-            api_v=settings.V1,
             token=token)
 
         email = EmailSender(smtp_server=settings.SMTP_SERVER,
@@ -61,3 +70,32 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             raise InvalidPasswordException(
                 reason='Password should not contain e-mail'
             )
+
+
+bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
+
+
+def get_jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(secret=settings.SECRET,
+                       lifetime_seconds=settings.TOKEN_LIFETIME)
+
+
+auth_backend = AuthenticationBackend(
+    name='jwt',
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
+
+
+async def get_user_manager(user_db: SQLAlchemyUserDatabase =
+                           Depends(get_user_db)):
+    yield UserManager(user_db)
+
+
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
+
+current_active_user = fastapi_users.current_user(active=True)

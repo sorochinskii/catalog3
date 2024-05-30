@@ -26,6 +26,10 @@ class BaseCommon(Base, TableNameMixin):
         return {field.name: getattr(self, field.name) for field in self.__table__.c}
 
     @classmethod
+    def tablename(cls):
+        return cls.__tablename__
+
+    @classmethod
     def as_list(cls) -> list[Any]:
         '''
         Return list of model fields stringed names except pki fields.

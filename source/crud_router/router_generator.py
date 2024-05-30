@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import Any, Callable, Type
+from typing import Any, Callable, Coroutine, Type
 
 from crud_db_v1.sa_crud import CRUDSA
 from exceptions.http_exceptions import (
     HttpExceptionsHandler,
     HTTPObjectNotExist,
-    HTTPUniqueException,
+    HTTPUniqueAttrException,
 )
 from exceptions.sa_handler_manager import ItemNotUnique
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -49,7 +49,6 @@ class RouterGenerator(APIRouter):
         self.schema_update = schema_update
 
         super().__init__(prefix=prefix, tags=tags, )
-        # self._pk = inspect(self.db_model).mapper.primary_key
         if route_get_all:
             self._add_api_route(
                 '',
@@ -108,7 +107,7 @@ class RouterGenerator(APIRouter):
             ** kwargs
         )
 
-    def _get_all(self, *args: Any, **kwargs: Any) -> Callable:
+    def _get_all(self, *args: Any, **kwargs: Any) -> Coroutine:
         async def endpoint():
             if self.schema_basic_out:
                 include_fields = self.schema_basic_out.model_fields
@@ -117,7 +116,7 @@ class RouterGenerator(APIRouter):
             return await self.db_crud.get_all(include=include_fields)
         return endpoint
 
-    def _get_by_id(self) -> Callable:
+    def _get_by_id(self) -> Coroutine:
         async def endpoint(item_id: int):
             include_fields = self.schema_basic_out.model_fields
             with HttpExceptionsHandler():
@@ -126,7 +125,7 @@ class RouterGenerator(APIRouter):
             return result
         return endpoint
 
-    def _create(self) -> Callable:
+    def _create(self) -> Coroutine:
         async def endpoint(
                 data: self.schema_create = Body()
         ) -> self.schema_basic_out:
@@ -135,10 +134,10 @@ class RouterGenerator(APIRouter):
                 response: int = await self.db_crud.create(data=data.dict())
                 return response
             except ItemNotUnique:
-                raise HTTPUniqueException
+                raise HTTPUniqueAttrException
         return endpoint
 
-    def _update(self) -> Callable:
+    def _update(self) -> Coroutine:
         async def endpoint(id: int, data: self.schema_update = Body()):
             data = jsonable_encoder(data)
             result = await self.db_crud.update(id, data)
@@ -147,7 +146,7 @@ class RouterGenerator(APIRouter):
             return result
         return endpoint
 
-    def _delete(self) -> Callable:
+    def _delete(self) -> Coroutine:
         async def endpoint(item_id: int) -> int | None:
             with HttpExceptionsHandler():
                 result = await self.db_crud.delete(item_id)
