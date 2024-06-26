@@ -50,9 +50,12 @@ jobs:
       run: |
         pip install -r requirements.txt
     - 
+      name: Setup Debug Session
+      uses: csexton/debugger-action@master
+    -
       name: Tests with pytest
       run: |
-        pytest --test-alembic
+        pytest
 
   build_and_push_to_docker_hub:
     name: Build and push Docker image to Docker Hub
