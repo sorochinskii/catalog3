@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 class Person(BaseCommon):
 
-    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(unique=True)
     rooms: Mapped[list['Room']] = relationship(
         secondary=RoomsPersons.tablename())
     devices_responsibility: Mapped[list['Device']] = relationship(
-        back_populates='responsible_person')
+        back_populates='responsible_person', lazy='joined')

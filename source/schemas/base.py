@@ -14,6 +14,4 @@ class OptionalFieldsMixin:
 
 
 class BaseSchema(BaseModel, OptionalFieldsMixin):
-
-    class Config:
-        from_attributes = True
+    ...

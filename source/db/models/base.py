@@ -13,8 +13,12 @@ class Base(DeclarativeBase):
 class TableNameMixin:
     @declared_attr.directive
     def __tablename__(cls) -> str:
-        table_name = split_and_concatenate(cls.__name__)
-        return table_name
+        try:
+            if (not cls.__mapper_args__.get('polymorphic_abstract')
+                    and (cls.__mapper_args__.get('polymorphic_identity') and cls.__mapper_args__.get('polymorphic_on'))):
+                return split_and_concatenate(cls.__name__)
+        except AttributeError:
+            return split_and_concatenate(cls.__name__)
 
 
 class BaseCommon(Base, TableNameMixin):
@@ -25,11 +29,11 @@ class BaseCommon(Base, TableNameMixin):
     def to_dict(self):
         return {field.name: getattr(self, field.name) for field in self.__table__.c}
 
-    @classmethod
+    @ classmethod
     def tablename(cls):
         return cls.__tablename__
 
-    @classmethod
+    @ classmethod
     def as_list(cls) -> list[Any]:
         '''
         Return list of model fields stringed names except pki fields.
@@ -39,7 +43,7 @@ class BaseCommon(Base, TableNameMixin):
             result.append(c.key)
         return result
 
-    @classmethod
+    @ classmethod
     def get_relationships(cls) -> list[Any]:
         '''
         Return list of model relations.
@@ -49,7 +53,7 @@ class BaseCommon(Base, TableNameMixin):
             result.append(c.key)
         return result
 
-    @classmethod
+    @ classmethod
     def get_pks(cls) -> list[Any]:
         '''
         Return list of primary keys.
@@ -59,7 +63,7 @@ class BaseCommon(Base, TableNameMixin):
             result.append(pk.name)
         return result
 
-    @classmethod
+    @ classmethod
     def get_fks(cls) -> list[Any]:
         '''
         Return list of foreign keys.

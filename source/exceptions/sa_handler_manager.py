@@ -18,6 +18,7 @@ class ErrorHandler:
         return self
 
     def __exit__(self, ex_type, ex_instance, traceback):
+        logger.error(ex_instance)
         if hasattr(ex_instance, 'orig'):
             match ex_instance.orig.pgcode:
                 case errorcodes.UNIQUE_VIOLATION:

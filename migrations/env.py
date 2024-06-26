@@ -11,7 +11,6 @@ from config import settings
 from db.models.base import BaseCommon
 from db.models.buildings import Building
 from db.models.devices import Device
-from db.models.mfp import MFPNetwork
 from db.models.persons import Person
 from db.models.rooms import Room
 from db.models.users import User

@@ -147,3 +147,9 @@ postgresdata
 database/
 
 logs/
+
+.envs*
+
+delete.py
+delete.db
+dellogging.yml

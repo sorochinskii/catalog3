@@ -6,7 +6,7 @@ from db.db import get_async_session
 from db.models.users import User
 from exceptions.http_exceptions import HTTPObjectNotExist
 from exceptions.smtp_exception_handler import SmtpErrorHandler
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request
 from fastapi_users import (
     BaseUserManager,
     FastAPIUsers,
@@ -19,6 +19,7 @@ from fastapi_users.authentication import (
     JWTStrategy,
 )
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from loguru import logger
 from schemas.users_base import UserBaseSchemaIn
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -99,3 +100,19 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase =
 fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
 
 current_active_user = fastapi_users.current_user(active=True)
+
+
+class RoleChecker:
+    def __init__(self, allowed_roles: list):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, user: User = Depends(current_active_user)):
+        if user.role not in self.allowed_roles:
+            logger.debug(
+                f'User with role {user.role} not in {self.allowed_roles}')
+            raise HTTPException(
+                status_code=403, detail='Operation not permitted')
+
+
+allow_create_resource = RoleChecker(['admin', 'superuser'])
+allow_read_resource = RoleChecker(['user'])

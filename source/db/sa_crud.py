@@ -1,27 +1,25 @@
 from dataclasses import dataclass
-from json import dumps, loads
-from typing import Any, Callable, Sequence, Type
+from typing import Any, Sequence, Type
 
-from db.db import async_session_maker
 from db.models.base import BaseCommon
 from exceptions.sa_handler_manager import ErrorHandler
 from loguru import logger
 from sqlalchemy import delete, insert, select, text, update
-from sqlalchemy.exc import MultipleResultsFound
-from sqlalchemy.ext.declarative import DeclarativeMeta as Model
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, raiseload
+
+MODEL_TYPE = Type[BaseCommon]
 
 
 class CRUDSA:
 
     def __init__(
             self,
-            model: Type[BaseCommon],
+            model: MODEL_TYPE,
             *args: Any,
             **kwargs: Any
     ):
         self.model = model
-        self.async_session_maker = async_session_maker
 
     @dataclass
     class SelectOptions:
@@ -29,31 +27,50 @@ class CRUDSA:
         load_only: Any
 
     async def get_all(self,
+                      session: AsyncSession,
                       include: list[Any] = [],
                       exclude: list[Any] = []) -> Sequence[Any]:
         options = self._get_select_options(include, exclude)
         stmt = select(self.model
                       ).options(*options.raiseload, options.load_only)
-        async with self.async_session_maker() as session:
-            raw = await session.scalars(stmt)
-        result = raw.all()
+        async with session as session:
+            with ErrorHandler() as error_handler:
+                raw = await session.scalars(stmt)
+                result = raw.unique().all()
+        return result
+
+    async def get_all_with_related(self,
+                                   session: AsyncSession,
+                                   include: list[Any] = [],
+                                   exclude: list[Any] = []) -> Sequence[Any]:
+        options = self._get_select_options(include, exclude)
+
+        stmt = select(self.model
+                      ).order_by(
+            getattr(self.model, self.model.get_pks()[0])).options(*options.raiseload, options.load_only)
+        async with session as session:
+            with ErrorHandler() as error_handler:
+                raw = await session.scalars(stmt)
+                result = raw.unique().all()
         return result
 
     async def get_by_id(self,
                         id: int,
+                        session: AsyncSession,
                         include: list[Any] = [],
                         exclude: list[Any] = []) -> Any:
         options = self._get_select_options(include, exclude)
         stmt = select(self.model
                       ).options(*options.raiseload, options.load_only
                                 ).filter_by(id=id)
-        async with self.async_session_maker() as session:
+        async with session as session:
             with ErrorHandler() as error_handler:
                 result = await session.execute(stmt)
-                item = result.one()[0]
+                item = result.unique().one()[0]
         return item
 
     async def get_with_filters(self,
+                               session: AsyncSession,
                                include: list[Any] = [],
                                exclude: list[Any] = [],
                                **filters) -> Any:
@@ -62,7 +79,7 @@ class CRUDSA:
         stmt = select(self.model
                       ).options(*options.raiseload, options.load_only
                                 ).filter_by(**filters)
-        async with self.async_session_maker() as session:
+        async with session:
             with ErrorHandler() as error_handler:
                 result = await session.execute(stmt)
                 item = result.one()[0]
@@ -70,43 +87,44 @@ class CRUDSA:
 
     async def create(self,
                      data: dict,
-                     include: list[Any] = [],
-                     exclude: list[Any] = []) -> Any:
+                     session: AsyncSession) -> Any:
         stmt = insert(self.model).returning(self.model)
-        async with self.async_session_maker() as session:
+        async with session:
             with ErrorHandler():
                 result = await session.scalar(stmt, [data])
                 await session.commit()
         logger.debug(f"SA crud create statement: {stmt}, data: {data}")
         return result
 
-    async def update(self, id: int, data: dict,
+    async def update(self, id: int,
+                     data: dict,
+                     session: AsyncSession,
                      include: list[Any] = [],
                      exclude: list[Any] = []) -> int | None:
         stmt = update(self.model).\
             where(self.model.id == id).\
             values(data).\
             returning(self.model.id)
-        async with self.async_session_maker() as session:
+        async with session:
             item_id = await session.scalar(stmt)
             await session.commit()
         return item_id
 
-    async def delete(self, item_id: int) -> int | None:
+    async def delete(self, item_id: int, session: AsyncSession) -> int | None:
         stmt = delete(self.model).\
             where(self.model.id == item_id).\
             returning(self.model.id)
         with ErrorHandler():
-            await self.check_exist_by_id(item_id)
-        async with self.async_session_maker() as session:
+            await self.check_exist_by_id(item_id, session)
+        async with session:
             result = await session.scalar(stmt)
             await session.commit()
         return result
 
-    async def check_exist_by_id(self, id):
+    async def check_exist_by_id(self, id, session):
         query = text(
             f'SELECT * FROM {self.model.__tablename__} WHERE id=:id')
-        async with async_session_maker() as session:
+        async with session:
             result = await session.execute(query, {'id': id})
         return result.one()
 
@@ -127,22 +145,24 @@ class CRUDSA:
             If at least one field/relation defined in exclude list,
                 other fields/relations included.
         '''
-        all_fields = self.model.as_list()
+        model_fields = self.model.as_list()
         pks = self.model.get_pks()
         fks = self.model.get_fks()
         relationships = self.model.get_relationships()
+        if relationships:
+            raise_all_relations = False
         select_options = self.SelectOptions(raiseload=[], load_only=[])
         if include:
             clean_include = [field for field in include
                              if field not in exclude]
             include = clean_include
         elif not include:
-            include = [field for field in all_fields
+            include = [field for field in model_fields
                        if field not in exclude]
-        include_list = [field for field in all_fields if (
+        include_list = [field for field in model_fields if (
             field in include
             and field not in exclude
-            and field not in pks
+            # and field not in pks
             and field not in fks)]
         include_fields = []
         for field in include_list:
@@ -153,7 +173,7 @@ class CRUDSA:
         if not raise_all_relations:
             for relation in relationships:
                 if ((attr := getattr(self.model, relation, False))
-                        and (relation in exclude and relation not in include)):
+                        and (relation in exclude or relation not in include)):
                     select_options.raiseload.append(raiseload(attr))
         else:
             select_options.raiseload.append(raiseload('*'))

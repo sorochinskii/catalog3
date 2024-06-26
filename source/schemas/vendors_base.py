@@ -7,3 +7,6 @@ class VendorBaseSchema(BaseSchema):
 
 class VendorBaseSchemaOut(VendorBaseSchema):
     id: int
+
+    class Config:
+        from_attributes = True

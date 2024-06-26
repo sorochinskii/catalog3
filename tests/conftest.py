@@ -7,7 +7,6 @@ from alembic.config import Config
 from fastapi import status
 from httpx import AsyncClient
 from polyfactory.factories.pydantic_factory import ModelFactory
-from pydantic import BaseModel
 from starlette.testclient import TestClient
 from testcontainers.postgres import PostgresContainer
 

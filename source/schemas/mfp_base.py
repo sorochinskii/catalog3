@@ -1,14 +1,18 @@
 from datetime import datetime
 
 from schemas.base import BaseSchema
+from schemas.printer_base import PrinterBaseSchema
 
 
-class MFPBaseSchema(BaseSchema):
-    serial: str
+class MFPBaseSchema(PrinterBaseSchema):
+    ...
 
 
 class MFPBaseSchemaOut(MFPBaseSchema):
     id: int
     type: str
     created: datetime
-    updated: datetime
+
+
+class MFPBaseSchemaIn(MFPBaseSchema):
+    ...
